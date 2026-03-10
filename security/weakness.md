@@ -5,22 +5,21 @@
 
 ## Executive Summary
 
-| Severity   | Count |
-| ---------- | ----- |
-| 🔴 Critical | 1     |
-| 🟠 High     | 0     |
-| 🟡 Medium   | 2     |
-| 🟢 Low      | 1     |
+| Severity | Count |
+| -------- | ----- |
+| ✅ Fixed  | 4     |
+| 🟡 Medium | 0     |
+| 🟢 Low    | 0     |
 
-**Gesamtbewertung:** Das Projekt zeigt ein solides Security-Fundament mit Helmet, CSRF-Schutz, Rate-Limiting und verschlüsselten Nachrichten. Jedoch existiert **eine kritische Schwachstelle**: Die `.env`-Datei mit Produktions-Secrets wird im Repository exponiert.
+**Gesamtbewertung:** Das Projekt zeigt ein solides Security-Fundament mit Helmet, CSRF-Schutz, Rate-Limiting und verschlüsselten Nachrichten. Die kritischen Schwachstellen wurden behoben.
 
 ---
 
 ## Findings
 
-### [FID-001] Secrets im Repository exponiert — Fehlende .gitignore
+### [FID-001] Secrets im Repository exponiert — Fehlende .gitignore ✅ BEHOBEN
 
-- **Severity:** 🔴 Critical
+- **Severity:** ✅ Fixed (ehemals 🔴 Critical)
 - **Category:** Sensitive Data Exposure / Security Misconfiguration
 - **File:** `.env` (Root-Verzeichnis)
 - **Description:** Die `.env`-Datei enthält sensible Produktions-Secrets (SESSION_SECRET, ENCRYPTION_KEY, MongoDB-Credentials mit Passwort) und es existiert **keine `.gitignore`-Datei** im Projekt. Das bedeutet, dass alle Secrets wahrscheinlich im Git-Repository committed sind und bei jedem Push zu GitHub/GitLab öffentlich werden könnten.
@@ -76,9 +75,9 @@
 
 ---
 
-### [FID-002] Schwache Passwort-Policy
+### [FID-002] Schwache Passwort-Policy ✅ BEHOBEN
 
-- **Severity:** 🟡 Medium
+- **Severity:** ✅ Fixed (ehemals 🟡 Medium)
 - **Category:** Broken Authentication
 - **File:** `routes/authRoutes.js` (Zeilen 26-27)
 - **Description:** Die Passwort-Validierung erfordert nur eine Mindestlänge von 8 Zeichen. Es gibt keine Anforderungen für Komplexität (Grossbuchstaben, Zahlen, Sonderzeichen). Das ermöglicht schwache Passwörter wie "password" oder "12345678".
@@ -121,9 +120,9 @@
 
 ---
 
-### [FID-003] Account-Enumeration bei Registrierung
+### [FID-003] Account-Enumeration bei Registrierung ✅ BEHOBEN
 
-- **Severity:** 🟡 Medium
+- **Severity:** ✅ Fixed (ehemals 🟡 Medium)
 - **Category:** Information Disclosure
 - **File:** `routes/authRoutes.js` (Zeilen 31-33)
 - **Description:** Die Fehlermeldung bei der Registrierung verrät, ob ein Benutzername oder eine E-Mail bereits existiert. Das ermöglicht Angreifern, gültige Benutzerkonten zu identifizieren.
@@ -175,9 +174,9 @@
 
 ---
 
-### [FID-004] Fehlende Passwort-Bestätigungsprüfung auf Client-Seite
+### [FID-004] Fehlende Passwort-Bestätigungsprüfung auf Client-Seite ✅ BEHOBEN
 
-- **Severity:** 🟢 Low
+- **Severity:** ✅ Fixed (ehemals 🟢 Low)
 - **Category:** Input Validation
 - **File:** `views/auth/register.ejs` (Zeilen 43-44)
 - **Description:** Das Passwort-Bestätigungsfeld hat `minlength="6"` statt `minlength="8"` wie im Backend validiert wird. Zudem gibt es keine Client-seitige JavaScript-Validierung, die prüft, ob beide Passwörter übereinstimmen, bevor das Formular abgeschickt wird.
@@ -229,7 +228,7 @@ Das Projekt implementiert bereits viele Best Practices:
 
 ## Priorisierte Massnahmen
 
-1. **SOFORT (Critical):** `.gitignore` erstellen, Secrets rotieren, Git-History bereinigen
-2. **Diese Woche (Medium):** Passwort-Policy verstärken
-3. **Bald (Medium):** Account-Enumeration-Schutz implementieren
-4. **Optional (Low):** Frontend-Validierung synchronisieren
+1. ✅ ~~**SOFORT (Critical):** `.gitignore` erstellen~~ — ERLEDIGT
+2. ✅ ~~**Diese Woche (Medium):** Passwort-Policy verstärken~~ — ERLEDIGT
+3. ✅ ~~**Bald (Medium):** Account-Enumeration-Schutz implementieren~~ — ERLEDIGT
+4. ✅ ~~**Optional (Low):** Frontend-Validierung synchronisieren~~ — ERLEDIGT
