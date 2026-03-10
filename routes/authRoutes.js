@@ -17,14 +17,18 @@ router.get('/register', (req, res) => {
     res.render('auth/register', { error: null, success: null });
 });
 
+// Passwort-Policy Regex (FID-002 Fix: min 8 Zeichen, Gross-/Kleinbuchstaben, Zahl, Sonderzeichen)
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+
 // POST /auth/register (FID-009, FID-010)
 router.post('/register', authLimiter, async (req, res) => {
     const { username, email, password, confirmPassword } = req.body;
     if (!username || !email || !password) {
         return res.render('auth/register', { error: 'Alle Felder sind erforderlich.', success: null });
     }
-    if (password.length < 8) {
-        return res.render('auth/register', { error: 'Passwort muss mindestens 8 Zeichen lang sein.', success: null });
+    // FID-002 Fix: Passwort-Komplexität validieren
+    if (!passwordRegex.test(password)) {
+        return res.render('auth/register', { error: 'Passwort muss mindestens 8 Zeichen mit Gross-/Kleinbuchstaben, Zahl und Sonderzeichen (@$!%*?&#) enthalten.', success: null });
     }
     if (password !== confirmPassword) {
         return res.render('auth/register', { error: 'Passwörter stimmen nicht überein.', success: null });
@@ -32,7 +36,8 @@ router.post('/register', authLimiter, async (req, res) => {
     try {
         const existing = await User.findOne({ $or: [{ email }, { username }] });
         if (existing) {
-            return res.render('auth/register', { error: 'Benutzername oder E-Mail bereits vergeben.', success: null });
+            // FID-003 Fix: Generische Fehlermeldung verhindert Account-Enumeration
+            return res.render('auth/register', { error: 'Registrierung nicht möglich. Bitte verwende andere Angaben oder melde dich an.', success: null });
         }
         const user = new User({ username, email, passwordHash: password });
         await user.save();
