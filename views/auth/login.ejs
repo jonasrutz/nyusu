@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anmelden | Team Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="auth-page">
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <span style="font-size:2.5rem">⚔️</span>
+            <h1>Team Manager</h1>
+            <p class="auth-subtitle">Willkommen zurück, Gamer!</p>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+
+        <form action="/auth/login" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="email">E-Mail</label>
+                <input type="email" id="email" name="email" placeholder="deine@email.de" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Passwort</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Anmelden</button>
+        </form>
+
+        <p class="auth-switch">Noch kein Account? <a href="/auth/register">Jetzt registrieren</a></p>
+    </div>
+</div>
+</body>
+</html>
+

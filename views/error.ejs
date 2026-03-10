@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fehler | Team Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% if (locals.sessionUser) { %>
+<%- include('./layout/sidebar') %>
+<% } %>
+<div class="main-content">
+    <div class="error-page">
+        <span class="error-icon">⚠️</span>
+        <h2>Oops!</h2>
+        <p><%= message || 'Ein unbekannter Fehler ist aufgetreten.' %></p>
+        <a href="/" class="btn btn-primary">Zurück zur Startseite</a>
+    </div>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,22 @@
+<nav class="sidebar">
+    <div class="sidebar-logo">
+        <span class="logo-icon">⚔️</span>
+        <span class="logo-text">Team Manager</span>
+    </div>
+    <% if (locals.sessionUser) { %>
+    <ul class="sidebar-nav">
+        <li><a href="/teams" class="nav-link"><span class="nav-icon">🏠</span> Dashboard</a></li>
+        <li><a href="/teams/new" class="nav-link"><span class="nav-icon">➕</span> Team erstellen</a></li>
+        <li><a href="/users/friends" class="nav-link"><span class="nav-icon">👥</span> Freunde</a></li>
+        <li><a href="/users/profile" class="nav-link"><span class="nav-icon">👤</span> Profil</a></li>
+    </ul>
+    <div class="sidebar-user">
+        <div class="user-avatar"><%= locals.sessionUser.username.charAt(0).toUpperCase() %></div>
+        <div class="user-info">
+            <span class="user-name"><%= locals.sessionUser.username %></span>
+            <a href="/auth/logout" class="logout-link">Abmelden</a>
+        </div>
+    </div>
+    <% } %>
+</nav>
+

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team erstellen | Team Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('../layout/sidebar') %>
+<div class="main-content">
+    <div class="page-header">
+        <h2>➕ Neues Team erstellen</h2>
+        <a href="/teams" class="btn btn-ghost">← Zurück</a>
+    </div>
+
+    <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <div class="form-card">
+        <form action="/teams" method="POST" class="form-standard">
+            <div class="form-group">
+                <label for="name">Teamname *</label>
+                <input type="text" id="name" name="name" placeholder="z.B. Alpha Wolves" required>
+            </div>
+            <div class="form-group">
+                <label for="game">Spiel</label>
+                <input type="text" id="game" name="game" placeholder="z.B. Valorant, CS2…">
+            </div>
+            <div class="form-group">
+                <label for="description">Beschreibung</label>
+                <textarea id="description" name="description" rows="4" placeholder="Beschreibe dein Team…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Team erstellen</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

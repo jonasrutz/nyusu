@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil | Team Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('../layout/sidebar') %>
+<div class="main-content">
+    <div class="page-header">
+        <h2>👤 Mein Profil</h2>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile-avatar"><%= user.username.charAt(0).toUpperCase() %></div>
+        <div class="profile-info">
+            <h3><%= user.username %></h3>
+            <p class="profile-email"><%= user.email %></p>
+            <p class="profile-meta">Mitglied seit: <%= new Date(user.createdAt).toLocaleDateString('de-CH') %></p>
+            <p class="profile-friends">👥 <%= user.friends.length %> Freund(e)
+                — <a href="/users/friends">Freunde verwalten</a>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

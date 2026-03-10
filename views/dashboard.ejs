@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Team Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('./layout/sidebar') %>
+<div class="main-content">
+    <div class="page-header">
+        <h2>🏠 Teams entdecken</h2>
+    </div>
+
+    <!-- Search -->
+    <form action="/teams" method="GET" class="search-form">
+        <input type="text" name="q" value="<%= query %>" placeholder="Team suchen…" class="search-input">
+        <button type="submit" class="btn btn-secondary">Suchen</button>
+        <% if (query) { %>
+            <a href="/teams" class="btn btn-ghost">Zurücksetzen</a>
+        <% } %>
+    </form>
+
+    <% if (query) { %>
+        <p class="search-info">
+            <% if (teams.length === 0) { %>
+                Keine Teams für „<strong><%= query %></strong>" gefunden.
+            <% } else { %>
+                <%= teams.length %> Team(s) für „<strong><%= query %></strong>" gefunden.
+            <% } %>
+        </p>
+    <% } %>
+
+    <!-- Team Grid -->
+    <div class="team-grid">
+        <% teams.forEach(team => { %>
+        <div class="team-card">
+            <div class="team-card-header">
+                <span class="team-avatar"><%= team.name.charAt(0).toUpperCase() %></span>
+                <div>
+                    <h3 class="team-name"><%= team.name %></h3>
+                    <% if (team.game) { %><span class="team-game">🎮 <%= team.game %></span><% } %>
+                </div>
+            </div>
+            <p class="team-desc"><%= team.description || 'Keine Beschreibung.' %></p>
+            <div class="team-card-footer">
+                <span class="team-meta">👤 <%= team.members.length %> Mitglied(er)</span>
+                <a href="/teams/<%= team._id %>" class="btn btn-primary btn-sm">Öffnen</a>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+
+    <% if (teams.length === 0 && !query) { %>
+    <div class="empty-state">
+        <span class="empty-icon">🎮</span>
+        <p>Noch keine Teams vorhanden.</p>
+        <a href="/teams/new" class="btn btn-primary">Erstes Team erstellen</a>
+    </div>
+    <% } %>
+</div>
+</body>
+</html>
+

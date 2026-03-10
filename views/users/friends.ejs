@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freunde | Team Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('../layout/sidebar') %>
+<div class="main-content">
+    <div class="page-header">
+        <h2>👥 Freunde</h2>
+    </div>
+
+    <% if (errorMsg) { %>
+        <div class="alert alert-error"><%= errorMsg %></div>
+    <% } %>
+
+    <div class="form-card">
+        <h4>Freund hinzufügen</h4>
+        <form action="/users/friends/add" method="POST" class="form-inline">
+            <input type="text" name="username" placeholder="Benutzername eingeben…" required>
+            <button type="submit" class="btn btn-primary">Hinzufügen</button>
+        </form>
+    </div>
+
+    <% if (friends.length === 0) { %>
+    <div class="empty-state">
+        <span class="empty-icon">👥</span>
+        <p>Du hast noch keine Freunde hinzugefügt.</p>
+    </div>
+    <% } else { %>
+    <div class="friends-list">
+        <% friends.forEach(friend => { %>
+        <div class="friend-card">
+            <div class="member-avatar"><%= friend.username.charAt(0).toUpperCase() %></div>
+            <div class="friend-info">
+                <span class="friend-name"><%= friend.username %></span>
+                <span class="friend-email"><%= friend.email %></span>
+            </div>
+            <form action="/users/friends/remove" method="POST">
+                <input type="hidden" name="friendId" value="<%= friend._id %>">
+                <button type="submit" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Freund entfernen?')">Entfernen</button>
+            </form>
+        </div>
+        <% }) %>
+    </div>
+    <% } %>
+</div>
+</body>
+</html>
+
+
+

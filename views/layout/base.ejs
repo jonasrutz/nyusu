@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title + ' | Team Manager' : 'Team Manager' %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('../layout/sidebar') %>
+<div class="main-content">
+    <%- body %>
+</div>
+</body>
+</html>
+
