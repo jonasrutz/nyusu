@@ -3,8 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= team.name %> | Team Manager</title>
+    <title><%= team.name %> | nyusu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <% if (user && user.accentColor) { %>
+    <style>
+        :root {
+            --accent: <%= user.accentColor %>;
+            --accent-hover: <%= user.accentColor %>cc;
+            --accent-glow: <%= user.accentColor %>4d;
+        }
+        .user-avatar, .msg-avatar, .member-avatar {
+            background: linear-gradient(135deg, <%= user.accentColor %> 0%, <%= user.accentColor %>99 100%) !important;
+            box-shadow: 0 4px 20px <%= user.accentColor %>66 !important;
+        }
+    </style>
+    <% } %>
 </head>
 <body>
 <%- include('../layout/sidebar') %>
@@ -17,40 +34,123 @@
         <div class="page-header">
             <div>
                 <h2><%= team.name %></h2>
-                <% if (team.game) { %><span class="team-game">🎮 <%= team.game %></span><% } %>
+                <% if (team.game) { %><span class="team-game"><i class="fas fa-gamepad"></i> <%= team.game %></span><% } %>
             </div>
             <div class="header-actions">
-                <% if (!isMember) { %>
-                    <form action="/teams/<%= team._id %>/join" method="POST" style="display:inline">
-                        <button class="btn btn-primary">Team beitreten ✓</button>
-                    </form>
-                <% } else if (team.founder._id.toString() !== user.userId) { %>
-                    <form action="/teams/<%= team._id %>/leave" method="POST" style="display:inline"
-                          onsubmit="return confirm('Team wirklich verlassen?')">
-                        <button class="btn btn-danger">Team verlassen</button>
+                <% if (isMember && team.founder._id.toString() !== user.userId) { %>
+                    <form action="/teams/<%= team._id %>/leave" method="POST" style="display:inline" class="confirm-form"
+                          data-title="Team verlassen?" data-message="Möchtest du dieses Team wirklich verlassen?">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="button" class="btn btn-danger confirm-trigger">Team verlassen</button>
                     </form>
                 <% } %>
                 <% if (isAdmin) { %>
-                    <a href="/teams/<%= team._id %>/edit" class="btn btn-secondary">✏️ Bearbeiten</a>
+                    <a href="/teams/<%= team._id %>/edit" class="btn btn-secondary"><i class="fas fa-edit"></i> Bearbeiten</a>
                 <% } %>
                 <% if (team.founder._id.toString() === user.userId) { %>
-                    <form action="/teams/<%= team._id %>/delete" method="POST" style="display:inline"
-                          onsubmit="return confirm('Team wirklich auflösen? Diese Aktion kann nicht rückgängig gemacht werden!')">
-                        <button class="btn btn-danger">🗑️ Auflösen</button>
+                    <form action="/teams/<%= team._id %>/delete" method="POST" style="display:inline" class="confirm-form"
+                          data-title="Team auflösen?" data-message="Diese Aktion kann nicht rückgängig gemacht werden! Alle Nachrichten und Dokumente werden gelöscht.">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="button" class="btn btn-danger confirm-trigger"><i class="fas fa-trash"></i> Auflösen</button>
                     </form>
                 <% } %>
-                <a href="/teams" class="btn btn-ghost">← Zurück</a>
+                <a href="/teams" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Zurück</a>
             </div>
         </div>
 
+        <% if (!isMember) { %>
+        <!-- ── Non-Member View ──────────────────────────────── -->
+        <div class="non-member-view">
+            <% if (team.description) { %>
+                <p class="team-description"><%= team.description %></p>
+            <% } %>
+            <div class="team-info-lines">
+                <div class="info-line"><i class="fas fa-users"></i> <%= team.members.length %> Mitglieder</div>
+                <% if (team.game) { %><div class="info-line"><i class="fas fa-gamepad"></i> <%= team.game %></div><% } %>
+            </div>
+
+            <% if (myRequest && myRequest.status === 'pending') { %>
+                <div class="join-request-sent">
+                    <span class="join-request-icon"><i class="fas fa-clock"></i></span>
+                    <div>
+                        <strong>Anfrage gesendet</strong>
+                        <p>Deine Beitrittsanfrage wird geprüft. Du wirst benachrichtigt, sobald ein Admin entschieden hat.</p>
+                    </div>
+                </div>
+            <% } else if (myRequest && myRequest.status === 'declined') { %>
+                <div class="join-request-declined">
+                    <span class="join-request-icon"><i class="fas fa-times-circle"></i></span>
+                    <div>
+                        <strong>Anfrage abgelehnt</strong>
+                        <p>Deine letzte Anfrage wurde abgelehnt. Du kannst eine neue einreichen.</p>
+                    </div>
+                </div>
+                <div class="join-form-card">
+                    <h3 class="join-form-title"><i class="fas fa-rocket"></i> Neue Beitrittsanfrage</h3>
+                    <form action="/teams/<%= team._id %>/join" method="POST" class="join-form">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <div class="form-group">
+                            <label for="rank2">Rang / Skill-Level *</label>
+                            <input type="text" id="rank2" name="rank" placeholder="z.B. Diamond, Global Elite, Platin…" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="experience2">Erfahrung</label>
+                            <input type="text" id="experience2" name="experience" placeholder="z.B. 3 Jahre Wettkampf, 500h…">
+                        </div>
+                        <div class="form-group">
+                            <label for="motivation2">Motivation / Warum möchtest du beitreten?</label>
+                            <textarea id="motivation2" name="motivation" rows="4" placeholder="Erzähl uns, warum du in dieses Team möchtest…"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-join">Anfrage absenden</button>
+                    </form>
+                </div>
+            <% } else { %>
+                <% if (requested) { %>
+                    <div class="alert alert-success"><i class="fas fa-check-circle"></i> Deine Anfrage wurde erfolgreich gesendet!</div>
+                <% } %>
+                <div class="join-form-card">
+                    <h3 class="join-form-title"><i class="fas fa-rocket"></i> Beitrittsanfrage stellen</h3>
+                    <form action="/teams/<%= team._id %>/join" method="POST" class="join-form">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <div class="form-group">
+                            <label for="rank">Rang / Skill-Level *</label>
+                            <input type="text" id="rank" name="rank" placeholder="z.B. Diamond, Global Elite, Platin…" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="experience">Erfahrung</label>
+                            <input type="text" id="experience" name="experience" placeholder="z.B. 3 Jahre Wettkampf, 500h…">
+                        </div>
+                        <div class="form-group">
+                            <label for="motivation">Motivation / Warum möchtest du beitreten?</label>
+                            <textarea id="motivation" name="motivation" rows="4" placeholder="Erzähl uns, warum du in dieses Team möchtest…"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-join">Anfrage absenden</button>
+                    </form>
+                </div>
+            <% } %>
+        </div>
+
+        <% } else { %>
+
         <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn <%= tab === 'chat' ? 'active' : '' %>" onclick="switchTab('chat')">💬 Chat</button>
-            <button class="tab-btn <%= tab === 'docs' ? 'active' : '' %>" onclick="switchTab('docs')">📄 Dokumente</button>
+        <div class="tabs" id="tabBar">
+            <button class="tab-btn <%= tab === 'chat' ? 'active' : '' %>" data-tab="chat"><i class="fas fa-comments"></i> Chat</button>
+            <button class="tab-btn <%= tab === 'docs' ? 'active' : '' %>" data-tab="docs"><i class="fas fa-folder-open"></i> Dokumente</button>
+            <% if (isAdmin) { %>
+            <button class="tab-btn <%= tab === 'requests' ? 'active' : '' %>" data-tab="requests">
+                <i class="fas fa-bell"></i> Anfragen<% if (joinRequests.length > 0) { %> <span class="badge-count"><%= joinRequests.length %></span><% } %>
+            </button>
+            <% } %>
         </div>
 
         <!-- ── Chat Tab ─────────────────────────────────── -->
         <div id="tab-chat" class="tab-content <%= tab === 'chat' ? 'active' : '' %>">
+            <% if (typeof isTimedOut !== 'undefined' && isTimedOut) { %>
+            <div class="alert alert-warning timeout-notice">
+                <i class="fas fa-clock"></i> Du bist gemutet bis <strong><%= timeoutUntil.toLocaleString('de-CH') %></strong>
+            </div>
+            <% } %>
+            
             <div class="chat-feed" id="chatFeed">
                 <% if (messages.length === 0) { %>
                     <div class="empty-state small"><p>Noch keine Nachrichten. Seid die Ersten!</p></div>
@@ -65,38 +165,38 @@
                         </div>
                         <p class="msg-content"><%= msg.content %></p>
                     </div>
-                    <% if (msg.author._id.toString() === user.userId) { %>
-                    <form action="/teams/<%= team._id %>/chat/<%= msg._id %>/delete" method="POST" class="msg-delete">
-                        <button class="btn-icon" title="Löschen" onclick="return confirm('Nachricht löschen?')">🗑️</button>
+                    <% if (msg.author._id.toString() === user.userId || isAdmin) { %>
+                    <form action="/teams/<%= team._id %>/chat/<%= msg._id %>/delete" method="POST" class="msg-delete confirm-form"
+                          data-title="Nachricht löschen?" data-message="Diese Nachricht wird unwiderruflich gelöscht.">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="button" class="btn-icon confirm-trigger" title="Löschen"><i class="fas fa-trash"></i></button>
                     </form>
                     <% } %>
                 </div>
                 <% }) %>
             </div>
 
-            <% if (isMember) { %>
             <form action="/teams/<%= team._id %>/chat" method="POST" class="chat-form">
-                <input type="text" name="content" placeholder="Nachricht eingeben…" class="chat-input" autocomplete="off" required>
-                <button type="submit" class="btn btn-primary">Senden</button>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <% const userTimedOut = typeof isTimedOut !== 'undefined' && isTimedOut; %>
+                <input type="text" name="content" placeholder="<%= userTimedOut ? 'Du bist gemutet...' : 'Nachricht eingeben…' %>" class="chat-input" autocomplete="off" required <%= userTimedOut ? 'disabled' : '' %>>
+                <button type="submit" class="btn btn-primary" <%= userTimedOut ? 'disabled' : '' %>>Senden</button>
             </form>
-            <% } else { %>
-            <p class="join-hint">Tritt dem Team bei, um am Chat teilzunehmen.</p>
-            <% } %>
         </div>
+
 
         <!-- ── Documents Tab ───────────────────────────── -->
         <div id="tab-docs" class="tab-content <%= tab === 'docs' ? 'active' : '' %>">
-            <% if (isMember) { %>
             <div class="doc-add-form">
-                <h4>📎 Ressource hinzufügen</h4>
+                <h4><i class="fas fa-paperclip"></i> Ressource hinzufügen</h4>
                 <form action="/teams/<%= team._id %>/documents" method="POST" class="form-inline">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <input type="text"  name="title"       placeholder="Titel *"         required>
                     <input type="url"   name="url"         placeholder="URL (https://…) *" required>
                     <input type="text"  name="description" placeholder="Beschreibung">
                     <button type="submit" class="btn btn-primary">Hinzufügen</button>
                 </form>
             </div>
-            <% } %>
 
             <% if (documents.length === 0) { %>
                 <div class="empty-state small"><p>Noch keine Dokumente vorhanden.</p></div>
@@ -108,15 +208,16 @@
                 <tbody>
                 <% documents.forEach(doc => { %>
                 <tr>
-                    <td><a href="<%= doc.url %>" target="_blank" rel="noopener" class="doc-link">🔗 <%= doc.title %></a></td>
+                    <td><a href="<%= doc.url %>" target="_blank" rel="noopener" class="doc-link"><i class="fas fa-external-link-alt"></i> <%= doc.title %></a></td>
                     <td><%= doc.description || '—' %></td>
                     <td><%= doc.uploadedBy.username %></td>
                     <td><%= new Date(doc.createdAt).toLocaleDateString('de-CH') %></td>
                     <td>
                         <% if (doc.uploadedBy._id.toString() === user.userId) { %>
-                        <form action="/teams/<%= team._id %>/documents/<%= doc._id %>/delete" method="POST"
-                              onsubmit="return confirm('Dokument löschen?')">
-                            <button class="btn-icon">🗑️</button>
+                        <form action="/teams/<%= team._id %>/documents/<%= doc._id %>/delete" method="POST" class="confirm-form"
+                              data-title="Dokument löschen?" data-message="Diese Ressource wird unwiderruflich entfernt.">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="button" class="btn-icon confirm-trigger"><i class="fas fa-trash"></i></button>
                         </form>
                         <% } %>
                     </td>
@@ -126,23 +227,108 @@
             </table>
             <% } %>
         </div>
+
+        <!-- ── Requests Tab ────────────────────────────── -->
+        <% if (isAdmin) { %>
+        <div id="tab-requests" class="tab-content <%= tab === 'requests' ? 'active' : '' %>">
+            <% if (joinRequests.length === 0) { %>
+                <div class="empty-state small"><p>Keine offenen Beitrittsanfragen. <i class="fas fa-party-horn"></i></p></div>
+            <% } else { %>
+                <div class="request-list">
+                <% joinRequests.forEach(req => { %>
+                    <div class="request-card">
+                        <div class="request-avatar"><%= req.user.username.charAt(0).toUpperCase() %></div>
+                        <div class="request-info">
+                            <div class="request-username"><%= req.user.username %></div>
+                            <div class="request-meta">
+                                <span><i class="fas fa-medal"></i> <strong>Rang:</strong> <%= req.rank || '—' %></span>
+                                <span><i class="fas fa-bolt"></i> <strong>Erfahrung:</strong> <%= req.experience || '—' %></span>
+                            </div>
+                            <% if (req.motivation) { %>
+                                <p class="request-motivation">"<%= req.motivation %>"</p>
+                            <% } %>
+                            <div class="request-date">Eingereicht: <%= new Date(req.createdAt).toLocaleString('de-CH') %></div>
+                        </div>
+                        <div class="request-actions">
+                            <form action="/teams/<%= team._id %>/requests/<%= req._id %>/accept" method="POST">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Annehmen</button>
+                            </form>
+                            <form action="/teams/<%= team._id %>/requests/<%= req._id %>/decline" method="POST">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Ablehnen</button>
+                            </form>
+                        </div>
+                    </div>
+                <% }) %>
+                </div>
+            <% } %>
+        </div>
+        <% } %>
+        <% } %>
     </div>
 
     <!-- ── Member Sidebar ───────────────────────────────── -->
     <aside class="member-sidebar">
-        <h4 class="members-title">👥 Mitglieder (<%= team.members.length %>)</h4>
+        <h4 class="members-title"><i class="fas fa-users"></i> Mitglieder (<%= team.members.length %>)</h4>
         <ul class="member-list">
             <% team.members.forEach(member => { %>
-            <li class="member-item">
+            <li class="member-item <%= member.isTimedOut ? 'timed-out' : '' %>">
                 <span class="member-avatar"><%= member.username.charAt(0).toUpperCase() %></span>
-                <span class="member-name">
-                    <%= member.username %>
-                    <% if (team.founder._id.toString() === member._id.toString()) { %>
-                        <span class="badge badge-founder">Gründer</span>
-                    <% } else if (team.admins.some(a => a._id.toString() === member._id.toString())) { %>
-                        <span class="badge badge-admin">Admin</span>
+                <div class="member-info">
+                    <span class="member-name">
+                        <%= member.username %>
+                        <% if (team.founder._id.toString() === member._id.toString()) { %>
+                            <span class="badge badge-founder">Gründer</span>
+                        <% } else if (team.admins.some(a => a._id.toString() === member._id.toString())) { %>
+                            <span class="badge badge-admin">Admin</span>
+                        <% } %>
+                        <% if (member.isTimedOut) { %>
+                            <span class="badge badge-timeout"><i class="fas fa-clock"></i> Muted</span>
+                        <% } %>
+                    </span>
+                    <% if (isAdmin && member._id.toString() !== user.userId && team.founder._id.toString() !== member._id.toString()) { %>
+                    <div class="member-actions">
+                        <% if (member.isTimedOut) { %>
+                        <form action="/teams/<%= team._id %>/untimeout/<%= member._id %>" method="POST" class="inline-form">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="submit" class="btn-icon btn-unmute" title="Unmute"><i class="fas fa-volume-up"></i></button>
+                        </form>
+                        <% } else { %>
+                        <div class="timeout-dropdown">
+                            <button type="button" class="btn-icon btn-timeout" title="Timeout"><i class="fas fa-clock"></i></button>
+                            <div class="dropdown-content">
+                                <form action="/teams/<%= team._id %>/timeout/<%= member._id %>" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="duration" value="5">
+                                    <button type="submit">5 Min</button>
+                                </form>
+                                <form action="/teams/<%= team._id %>/timeout/<%= member._id %>" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="duration" value="15">
+                                    <button type="submit">15 Min</button>
+                                </form>
+                                <form action="/teams/<%= team._id %>/timeout/<%= member._id %>" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="duration" value="60">
+                                    <button type="submit">1 Stunde</button>
+                                </form>
+                                <form action="/teams/<%= team._id %>/timeout/<%= member._id %>" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="duration" value="1440">
+                                    <button type="submit">1 Tag</button>
+                                </form>
+                            </div>
+                        </div>
+                        <% } %>
+                        <form action="/teams/<%= team._id %>/kick/<%= member._id %>" method="POST" class="inline-form confirm-form"
+                              data-title="Mitglied kicken?" data-message="<%= member.username %> wird aus dem Team entfernt.">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <button type="button" class="btn-icon btn-kick confirm-trigger" title="Kicken"><i class="fas fa-user-slash"></i></button>
+                        </form>
+                    </div>
                     <% } %>
-                </span>
+                </div>
             </li>
             <% }) %>
         </ul>
@@ -151,18 +337,445 @@
 
 <script>
 function switchTab(name) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-    document.querySelector('[onclick="switchTab(\'' + name + '\')"]').classList.add('active');
-    // update URL without reload
-    const url = new URL(window.location);
+    document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(el) { el.classList.remove('active'); });
+    var tabEl = document.getElementById('tab-' + name);
+    if (tabEl) tabEl.classList.add('active');
+    var btnEl = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+    if (btnEl) btnEl.classList.add('active');
+    var url = new URL(window.location);
     url.searchParams.set('tab', name);
     window.history.replaceState({}, '', url);
 }
+
+// Wire up tab buttons via event listeners (script is at end of body, DOM is already ready)
+(function() {
+    var tabBar = document.getElementById('tabBar');
+    if (tabBar) {
+        tabBar.addEventListener('click', function(e) {
+            var btn = e.target.closest('.tab-btn');
+            if (btn && btn.dataset.tab) {
+                switchTab(btn.dataset.tab);
+            }
+        });
+    }
+})();
+
 // Scroll chat to bottom on load
-const feed = document.getElementById('chatFeed');
+var feed = document.getElementById('chatFeed');
 if (feed) feed.scrollTop = feed.scrollHeight;
+
+// Auto-refresh all data (messages, members, requests, documents)
+<% if (isMember) { %>
+(function() {
+    const teamId = '<%= team._id %>';
+    const isAdmin = <%= isAdmin %>;
+    const founderId = '<%= team.founder._id %>';
+    const currentUserId = '<%= user.userId %>';
+    const csrfToken = '<%= csrfToken %>';
+    
+    let lastMessageCount = <%= messages.length %>;
+    let lastMemberCount = <%= team.members.length %>;
+    let lastDocCount = <%= documents.length %>;
+    let lastRequestCount = <%= isAdmin ? joinRequests.length : 0 %>;
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatDate(dateStr) {
+        return new Date(dateStr).toLocaleString('de-CH');
+    }
+    
+    function formatDateShort(dateStr) {
+        return new Date(dateStr).toLocaleDateString('de-CH');
+    }
+    
+    async function fetchAllData() {
+        try {
+            const response = await fetch(`/teams/${teamId}/data`);
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            
+            // Update chat messages
+            updateMessages(data.messages, data.currentUserId, data.isAdmin);
+            
+            // Update member sidebar
+            updateMembers(data.team.members, data.team.admins, data.team.founder, data.isAdmin, data.currentUserId);
+            
+            // Update documents
+            updateDocuments(data.documents, data.currentUserId);
+            
+            // Update join requests (admin only)
+            if (data.isAdmin) {
+                updateRequests(data.joinRequests);
+            }
+            
+            // Update timeout notice
+            updateTimeoutNotice(data.isTimedOut, data.timeoutUntil);
+            
+        } catch (err) {
+            console.error('Fehler beim Laden der Daten:', err);
+        }
+    }
+    
+    function updateMessages(messages, userId, userIsAdmin) {
+        const chatFeed = document.getElementById('chatFeed');
+        if (!chatFeed) return;
+        
+        if (messages.length !== lastMessageCount) {
+            const wasAtBottom = chatFeed.scrollHeight - chatFeed.scrollTop <= chatFeed.clientHeight + 50;
+            
+            if (messages.length === 0) {
+                chatFeed.innerHTML = '<div class="empty-state small"><p>Noch keine Nachrichten. Seid die Ersten!</p></div>';
+            } else {
+                chatFeed.innerHTML = messages.map(msg => {
+                    const isOwn = msg.author._id === userId;
+                    const canDelete = isOwn || userIsAdmin;
+                    return `
+                        <div class="chat-message ${isOwn ? 'own' : ''}">
+                            <div class="msg-avatar">${escapeHtml(msg.author.username.charAt(0).toUpperCase())}</div>
+                            <div class="msg-body">
+                                <div class="msg-meta">
+                                    <span class="msg-author">${escapeHtml(msg.author.username)}</span>
+                                    <span class="msg-time">${formatDate(msg.createdAt)}</span>
+                                </div>
+                                <p class="msg-content">${escapeHtml(msg.content)}</p>
+                            </div>
+                            ${canDelete ? `
+                            <form action="/teams/${teamId}/chat/${msg._id}/delete" method="POST" class="msg-delete confirm-form"
+                                  data-title="Nachricht löschen?" data-message="Diese Nachricht wird unwiderruflich gelöscht.">
+                                <input type="hidden" name="_csrf" value="${csrfToken}">
+                                <button type="button" class="btn-icon confirm-trigger" title="Löschen"><i class="fas fa-trash"></i></button>
+                            </form>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            lastMessageCount = messages.length;
+            if (wasAtBottom) chatFeed.scrollTop = chatFeed.scrollHeight;
+        }
+    }
+    
+    function updateMembers(members, admins, founder, userIsAdmin, userId) {
+        const memberList = document.querySelector('.member-list');
+        const membersTitle = document.querySelector('.members-title');
+        if (!memberList) return;
+        
+        if (members.length !== lastMemberCount) {
+            lastMemberCount = members.length;
+            membersTitle.innerHTML = `<i class="fas fa-users"></i> Mitglieder (${members.length})`;
+            
+            const adminIds = admins.map(a => a._id.toString());
+            
+            memberList.innerHTML = members.map(member => {
+                const isFounder = founder._id.toString() === member._id.toString();
+                const isMemberAdmin = adminIds.includes(member._id.toString());
+                const canManage = userIsAdmin && member._id.toString() !== userId && !isFounder;
+                
+                return `
+                <li class="member-item ${member.isTimedOut ? 'timed-out' : ''}">
+                    <span class="member-avatar">${escapeHtml(member.username.charAt(0).toUpperCase())}</span>
+                    <div class="member-info">
+                        <span class="member-name">
+                            ${escapeHtml(member.username)}
+                            ${isFounder ? '<span class="badge badge-founder">Gründer</span>' : ''}
+                            ${!isFounder && isMemberAdmin ? '<span class="badge badge-admin">Admin</span>' : ''}
+                            ${member.isTimedOut ? '<span class="badge badge-timeout"><i class="fas fa-clock"></i> Muted</span>' : ''}
+                        </span>
+                        ${canManage ? `
+                        <div class="member-actions">
+                            ${member.isTimedOut ? `
+                            <form action="/teams/${teamId}/untimeout/${member._id}" method="POST" class="inline-form">
+                                <input type="hidden" name="_csrf" value="${csrfToken}">
+                                <button type="submit" class="btn-icon btn-unmute" title="Unmute"><i class="fas fa-volume-up"></i></button>
+                            </form>
+                            ` : `
+                            <div class="timeout-dropdown">
+                                <button type="button" class="btn-icon btn-timeout" title="Timeout"><i class="fas fa-clock"></i></button>
+                                <div class="dropdown-content">
+                                    <form action="/teams/${teamId}/timeout/${member._id}" method="POST">
+                                        <input type="hidden" name="_csrf" value="${csrfToken}">
+                                        <input type="hidden" name="duration" value="5">
+                                        <button type="submit">5 Min</button>
+                                    </form>
+                                    <form action="/teams/${teamId}/timeout/${member._id}" method="POST">
+                                        <input type="hidden" name="_csrf" value="${csrfToken}">
+                                        <input type="hidden" name="duration" value="15">
+                                        <button type="submit">15 Min</button>
+                                    </form>
+                                    <form action="/teams/${teamId}/timeout/${member._id}" method="POST">
+                                        <input type="hidden" name="_csrf" value="${csrfToken}">
+                                        <input type="hidden" name="duration" value="60">
+                                        <button type="submit">1 Stunde</button>
+                                    </form>
+                                    <form action="/teams/${teamId}/timeout/${member._id}" method="POST">
+                                        <input type="hidden" name="_csrf" value="${csrfToken}">
+                                        <input type="hidden" name="duration" value="1440">
+                                        <button type="submit">1 Tag</button>
+                                    </form>
+                                </div>
+                            </div>
+                            `}
+                            <form action="/teams/${teamId}/kick/${member._id}" method="POST" class="inline-form confirm-form"
+                                  data-title="Mitglied kicken?" data-message="${escapeHtml(member.username)} wird aus dem Team entfernt.">
+                                <input type="hidden" name="_csrf" value="${csrfToken}">
+                                <button type="button" class="btn-icon btn-kick confirm-trigger" title="Kicken"><i class="fas fa-user-slash"></i></button>
+                            </form>
+                        </div>
+                        ` : ''}
+                    </div>
+                </li>
+                `;
+            }).join('');
+        }
+    }
+    
+    function updateDocuments(documents, userId) {
+        const docsTab = document.getElementById('tab-docs');
+        if (!docsTab) return;
+        
+        if (documents.length !== lastDocCount) {
+            lastDocCount = documents.length;
+            
+            const emptyState = docsTab.querySelector('.empty-state');
+            let table = docsTab.querySelector('.doc-table');
+            
+            if (documents.length === 0) {
+                if (table) table.remove();
+                if (!emptyState) {
+                    const form = docsTab.querySelector('.doc-add-form');
+                    if (form) form.insertAdjacentHTML('afterend', '<div class="empty-state small"><p>Noch keine Dokumente vorhanden.</p></div>');
+                }
+            } else {
+                if (emptyState) emptyState.remove();
+                
+                // Create table if it doesn't exist
+                if (!table) {
+                    const form = docsTab.querySelector('.doc-add-form');
+                    const tableHtml = `
+                        <table class="doc-table">
+                            <thead>
+                                <tr><th>Titel</th><th>Beschreibung</th><th>Erstellt von</th><th>Datum</th><th></th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    `;
+                    if (form) form.insertAdjacentHTML('afterend', tableHtml);
+                    table = docsTab.querySelector('.doc-table');
+                }
+                
+                const docTable = table.querySelector('tbody');
+                if (docTable) {
+                    docTable.innerHTML = documents.map(doc => `
+                        <tr>
+                            <td><a href="${escapeHtml(doc.url)}" target="_blank" rel="noopener" class="doc-link"><i class="fas fa-external-link-alt"></i> ${escapeHtml(doc.title)}</a></td>
+                            <td>${escapeHtml(doc.description || '—')}</td>
+                            <td>${escapeHtml(doc.uploadedBy.username)}</td>
+                            <td>${formatDateShort(doc.createdAt)}</td>
+                            <td>
+                                ${doc.uploadedBy._id === userId ? `
+                                <form action="/teams/${teamId}/documents/${doc._id}/delete" method="POST" class="confirm-form"
+                                      data-title="Dokument löschen?" data-message="Diese Ressource wird unwiderruflich entfernt.">
+                                    <input type="hidden" name="_csrf" value="${csrfToken}">
+                                    <button type="button" class="btn-icon confirm-trigger"><i class="fas fa-trash"></i></button>
+                                </form>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        }
+    }
+    
+    function updateRequests(joinRequests) {
+        const requestsTab = document.getElementById('tab-requests');
+        if (!requestsTab) return;
+        
+        if (joinRequests.length !== lastRequestCount) {
+            lastRequestCount = joinRequests.length;
+            
+            // Update badge
+            const tabBtn = document.querySelector('.tab-btn[data-tab="requests"]');
+            if (tabBtn) {
+                const badge = tabBtn.querySelector('.badge-count');
+                if (joinRequests.length > 0) {
+                    if (badge) {
+                        badge.textContent = joinRequests.length;
+                    } else {
+                        tabBtn.innerHTML = `<i class="fas fa-bell"></i> Anfragen <span class="badge-count">${joinRequests.length}</span>`;
+                    }
+                } else {
+                    if (badge) badge.remove();
+                }
+            }
+            
+            // Update content
+            if (joinRequests.length === 0) {
+                requestsTab.innerHTML = '<div class="empty-state small"><p>Keine offenen Beitrittsanfragen. <i class="fas fa-party-horn"></i></p></div>';
+            } else {
+                requestsTab.innerHTML = `<div class="request-list">${joinRequests.map(req => `
+                    <div class="request-card">
+                        <div class="request-avatar">${escapeHtml(req.user.username.charAt(0).toUpperCase())}</div>
+                        <div class="request-info">
+                            <div class="request-username">${escapeHtml(req.user.username)}</div>
+                            <div class="request-meta">
+                                <span><i class="fas fa-medal"></i> <strong>Rang:</strong> ${escapeHtml(req.rank || '—')}</span>
+                                <span><i class="fas fa-bolt"></i> <strong>Erfahrung:</strong> ${escapeHtml(req.experience || '—')}</span>
+                            </div>
+                            ${req.motivation ? `<p class="request-motivation">"${escapeHtml(req.motivation)}"</p>` : ''}
+                            <div class="request-date">Eingereicht: ${formatDate(req.createdAt)}</div>
+                        </div>
+                        <div class="request-actions">
+                            <form action="/teams/${teamId}/requests/${req._id}/accept" method="POST">
+                                <input type="hidden" name="_csrf" value="${csrfToken}">
+                                <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Annehmen</button>
+                            </form>
+                            <form action="/teams/${teamId}/requests/${req._id}/decline" method="POST">
+                                <input type="hidden" name="_csrf" value="${csrfToken}">
+                                <button class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Ablehnen</button>
+                            </form>
+                        </div>
+                    </div>
+                `).join('')}</div>`;
+            }
+        }
+    }
+    
+    function updateTimeoutNotice(isTimedOut, timeoutUntil) {
+        const chatTab = document.getElementById('tab-chat');
+        if (!chatTab) return;
+        
+        let notice = chatTab.querySelector('.timeout-notice');
+        const chatForm = chatTab.querySelector('.chat-form');
+        
+        if (isTimedOut) {
+            const formattedTime = new Date(timeoutUntil).toLocaleString('de-CH');
+            if (!notice) {
+                const noticeHtml = `<div class="alert alert-warning timeout-notice"><i class="fas fa-clock"></i> Du bist gemutet bis <strong>${formattedTime}</strong></div>`;
+                chatTab.insertAdjacentHTML('afterbegin', noticeHtml);
+            } else {
+                notice.innerHTML = `<i class="fas fa-clock"></i> Du bist gemutet bis <strong>${formattedTime}</strong>`;
+            }
+            if (chatForm) {
+                const input = chatForm.querySelector('.chat-input');
+                const btn = chatForm.querySelector('button[type="submit"]');
+                if (input) { input.disabled = true; input.placeholder = 'Du bist gemutet...'; }
+                if (btn) btn.disabled = true;
+            }
+        } else {
+            if (notice) notice.remove();
+            if (chatForm) {
+                const input = chatForm.querySelector('.chat-input');
+                const btn = chatForm.querySelector('button[type="submit"]');
+                if (input) { input.disabled = false; input.placeholder = 'Nachricht eingeben…'; }
+                if (btn) btn.disabled = false;
+            }
+        }
+    }
+    
+    // Poll every 2 seconds
+    setInterval(fetchAllData, 2000);
+})();
+<% } %>
+
+// Custom Modal System
+(function() {
+    // Create modal HTML
+    const modalHTML = `
+        <div class="modal-overlay" id="confirmModal">
+            <div class="modal-box">
+                <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3 class="modal-title" id="modalTitle">Bestätigung</h3>
+                <p class="modal-message" id="modalMessage">Möchtest du fortfahren?</p>
+                <div class="modal-actions">
+                    <button class="btn modal-btn-cancel" id="modalCancel">Abbrechen</button>
+                    <button class="btn modal-btn-confirm" id="modalConfirm">Bestätigen</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const modal = document.getElementById('confirmModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalConfirm = document.getElementById('modalConfirm');
+    let currentForm = null;
+
+    function showModal(title, message, form) {
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        currentForm = form;
+        modal.classList.add('active');
+    }
+
+    function hideModal() {
+        modal.classList.remove('active');
+        currentForm = null;
+    }
+
+    modalCancel.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideModal();
+    });
+
+    modalConfirm.addEventListener('click', () => {
+        if (currentForm) {
+            currentForm.submit();
+        }
+        hideModal();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            hideModal();
+        }
+    });
+
+    // Attach to all confirm triggers
+    document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('.confirm-trigger');
+        if (trigger) {
+            const form = trigger.closest('.confirm-form');
+            if (form) {
+                const title = form.dataset.title || 'Bestätigung';
+                const message = form.dataset.message || 'Möchtest du fortfahren?';
+                showModal(title, message, form);
+            }
+        }
+    });
+})();
+
+// Mobile Sidebar Toggle
+(function() {
+    const toggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (toggle && sidebar && overlay) {
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.innerHTML = sidebar.classList.contains('open') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.innerHTML = '<i class="fas fa-bars"></i>';
+        });
+    }
+})();
 </script>
 </body>
 </html>

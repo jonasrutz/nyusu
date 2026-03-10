@@ -1,11 +1,19 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true },
-    email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
-    friends:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    accentColor: {
+        type: String,
+        default: '#00d4aa',
+        validate: {
+            validator: v => /^#[0-9A-Fa-f]{6}$/.test(v),
+            message: 'accentColor muss ein gültiger Hex-Farbcode sein.'
+        }
+    },
 }, { timestamps: true });
 
 // Hash password before saving

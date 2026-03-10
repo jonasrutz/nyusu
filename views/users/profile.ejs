@@ -3,14 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil | Team Manager</title>
+    <title>Profil | nyusu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <% if (user.accentColor) { %>
+    <style>
+        :root {
+            --accent: <%= user.accentColor %>;
+            --accent-hover: <%= user.accentColor %>cc;
+            --accent-glow: <%= user.accentColor %>4d;
+        }
+        .profile-avatar {
+            background: linear-gradient(135deg, <%= user.accentColor %> 0%, <%= user.accentColor %>99 100%) !important;
+            box-shadow: 0 4px 20px <%= user.accentColor %>66 !important;
+        }
+    </style>
+    <% } %>
 </head>
 <body>
 <%- include('../layout/sidebar') %>
 <div class="main-content">
     <div class="page-header">
-        <h2>👤 Mein Profil</h2>
+        <h2><i class="fas fa-user"></i> Mein Profil</h2>
     </div>
 
     <div class="profile-card">
@@ -19,12 +36,93 @@
             <h3><%= user.username %></h3>
             <p class="profile-email"><%= user.email %></p>
             <p class="profile-meta">Mitglied seit: <%= new Date(user.createdAt).toLocaleDateString('de-CH') %></p>
-            <p class="profile-friends">👥 <%= user.friends.length %> Freund(e)
+            <p class="profile-friends"><i class="fas fa-user-friends"></i> <%= user.friends.length %> Freund(e)
                 — <a href="/users/friends">Freunde verwalten</a>
             </p>
         </div>
     </div>
+
+    <div class="settings-section">
+        <h3><i class="fas fa-palette"></i> Akzentfarbe</h3>
+        <p class="settings-description">Wähle deine persönliche Akzentfarbe für Buttons und Highlights.</p>
+        <div class="color-presets">
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#3b82f6">
+                <button type="submit" class="color-preset <%= user.accentColor === '#3b82f6' ? 'active' : '' %>" style="background: #3b82f6;" title="Blau"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#ef4444">
+                <button type="submit" class="color-preset <%= user.accentColor === '#ef4444' ? 'active' : '' %>" style="background: #ef4444;" title="Rot"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#22c55e">
+                <button type="submit" class="color-preset <%= user.accentColor === '#22c55e' ? 'active' : '' %>" style="background: #22c55e;" title="Grün"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#a855f7">
+                <button type="submit" class="color-preset <%= user.accentColor === '#a855f7' ? 'active' : '' %>" style="background: #a855f7;" title="Violett"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#f97316">
+                <button type="submit" class="color-preset <%= user.accentColor === '#f97316' ? 'active' : '' %>" style="background: #f97316;" title="Orange"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#eab308">
+                <button type="submit" class="color-preset <%= user.accentColor === '#eab308' ? 'active' : '' %>" style="background: #eab308;" title="Gelb"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#ec4899">
+                <button type="submit" class="color-preset <%= user.accentColor === '#ec4899' ? 'active' : '' %>" style="background: #ec4899;" title="Pink"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#14b8a6">
+                <button type="submit" class="color-preset <%= user.accentColor === '#14b8a6' ? 'active' : '' %>" style="background: #14b8a6;" title="Türkis"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#6366f1">
+                <button type="submit" class="color-preset <%= user.accentColor === '#6366f1' ? 'active' : '' %>" style="background: #6366f1;" title="Indigo"></button>
+            </form>
+            <form action="/users/profile/color" method="POST" class="color-preset-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="accentColor" value="#f43f5e">
+                <button type="submit" class="color-preset <%= user.accentColor === '#f43f5e' ? 'active' : '' %>" style="background: #f43f5e;" title="Rosa"></button>
+            </form>
+        </div>
+    </div>
 </div>
+<script>
+// Mobile Sidebar Toggle
+(function() {
+    const toggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (toggle && sidebar && overlay) {
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.innerHTML = sidebar.classList.contains('open') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.innerHTML = '<i class="fas fa-bars"></i>';
+        });
+    }
+})();
+</script>
 </body>
 </html>
 

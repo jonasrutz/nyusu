@@ -1,17 +1,30 @@
 const express = require('express');
-const router  = express.Router();
-const User    = require('../models/User');
+const rateLimit = require('express-rate-limit');
+const router = express.Router();
+const User = require('../models/User');
+
+// Rate Limiting (FID-009)
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 15,
+    message: 'Zu viele Versuche. Bitte versuche es in 15 Minuten erneut.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // GET /auth/register
 router.get('/register', (req, res) => {
     res.render('auth/register', { error: null, success: null });
 });
 
-// POST /auth/register
-router.post('/register', async (req, res) => {
+// POST /auth/register (FID-009, FID-010)
+router.post('/register', authLimiter, async (req, res) => {
     const { username, email, password, confirmPassword } = req.body;
     if (!username || !email || !password) {
         return res.render('auth/register', { error: 'Alle Felder sind erforderlich.', success: null });
+    }
+    if (password.length < 8) {
+        return res.render('auth/register', { error: 'Passwort muss mindestens 8 Zeichen lang sein.', success: null });
     }
     if (password !== confirmPassword) {
         return res.render('auth/register', { error: 'Passwörter stimmen nicht überein.', success: null });
@@ -25,6 +38,7 @@ router.post('/register', async (req, res) => {
         await user.save();
         req.session.userId = user._id.toString();
         req.session.username = user.username;
+        req.session.accentColor = user.accentColor;
         res.redirect('/teams');
     } catch (err) {
         console.error(err);
@@ -37,8 +51,8 @@ router.get('/login', (req, res) => {
     res.render('auth/login', { error: null });
 });
 
-// POST /auth/login
-router.post('/login', async (req, res) => {
+// POST /auth/login (FID-009)
+router.post('/login', authLimiter, async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
         return res.render('auth/login', { error: 'E-Mail und Passwort erforderlich.' });
@@ -48,8 +62,9 @@ router.post('/login', async (req, res) => {
         if (!user || !(await user.comparePassword(password))) {
             return res.render('auth/login', { error: 'Ungültige Anmeldedaten.' });
         }
-        req.session.userId   = user._id.toString();
+        req.session.userId = user._id.toString();
         req.session.username = user.username;
+        req.session.accentColor = user.accentColor;
         res.redirect('/teams');
     } catch (err) {
         console.error(err);
@@ -57,8 +72,8 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// GET /auth/logout
-router.get('/logout', (req, res) => {
+// POST /auth/logout (FID-013)
+router.post('/logout', (req, res) => {
     req.session.destroy(() => res.redirect('/auth/login'));
 });
 

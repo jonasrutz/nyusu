@@ -1,7 +1,7 @@
-const express  = require('express');
-const router   = express.Router({ mergeParams: true });
+const express = require('express');
+const router = express.Router({ mergeParams: true });
 const Document = require('../models/Document');
-const Team     = require('../models/Team');
+const Team = require('../models/Team');
 const { isAuthenticated } = require('../middleware/auth');
 
 // GET /teams/:teamId/documents — redirect to detail page docs tab
@@ -14,6 +14,15 @@ router.post('/', isAuthenticated, async (req, res) => {
     const { title, url, description } = req.body;
     const teamId = req.params.teamId;
     if (!title || !url) return res.redirect(`/teams/${teamId}?tab=docs`);
+    // URL-Validierung (FID-011)
+    try {
+        const parsed = new URL(url);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return res.redirect(`/teams/${teamId}?tab=docs`);
+        }
+    } catch {
+        return res.redirect(`/teams/${teamId}?tab=docs`);
+    }
     try {
         const team = await Team.findById(teamId);
         if (!team) return res.redirect('/teams');

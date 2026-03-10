@@ -3,26 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrieren | Team Manager</title>
+    <title>Registrieren | nyusu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="auth-page">
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-logo">
-            <span style="font-size:2.5rem">⚔️</span>
-            <h1>Team Manager</h1>
+            <span class="auth-logo-icon"><i class="fas fa-users"></i></span>
+            <h1>NYU<span>SU</span></h1>
             <p class="auth-subtitle">Erstelle deinen Account</p>
         </div>
 
         <% if (error) { %>
-            <div class="alert alert-error"><%= error %></div>
+            <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error %></div>
         <% } %>
         <% if (success) { %>
-            <div class="alert alert-success"><%= success %></div>
+            <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success %></div>
         <% } %>
 
         <form action="/auth/register" method="POST" class="auth-form">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
             <div class="form-group">
                 <label for="username">Benutzername</label>
                 <input type="text" id="username" name="username" placeholder="CoolGamer99" required>

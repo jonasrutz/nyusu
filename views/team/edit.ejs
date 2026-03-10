@@ -3,15 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team bearbeiten | Team Manager</title>
+    <title>Team bearbeiten | nyusu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <% if (user && user.accentColor) { %>
+    <style>
+        :root {
+            --accent: <%= user.accentColor %>;
+            --accent-hover: <%= user.accentColor %>cc;
+            --accent-glow: <%= user.accentColor %>4d;
+        }
+        .user-avatar {
+            background: linear-gradient(135deg, <%= user.accentColor %> 0%, <%= user.accentColor %>99 100%) !important;
+            box-shadow: 0 4px 20px <%= user.accentColor %>66 !important;
+        }
+    </style>
+    <% } %>
 </head>
 <body>
 <%- include('../layout/sidebar') %>
 <div class="main-content">
     <div class="page-header">
-        <h2>✏️ Team bearbeiten</h2>
-        <a href="/teams/<%= team._id %>" class="btn btn-ghost">← Zurück</a>
+        <h2><i class="fas fa-edit"></i> Team bearbeiten</h2>
+        <a href="/teams/<%= team._id %>" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Zurück</a>
     </div>
 
     <% if (error) { %>
@@ -20,6 +37,7 @@
 
     <div class="form-card">
         <form action="/teams/<%= team._id %>/edit" method="POST" class="form-standard">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-group">
                 <label for="name">Teamname *</label>
                 <input type="text" id="name" name="name" value="<%= team.name %>" required>
@@ -36,6 +54,30 @@
         </form>
     </div>
 </div>
+<script>
+// Mobile Sidebar Toggle
+(function() {
+    const toggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (toggle && sidebar && overlay) {
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.innerHTML = sidebar.classList.contains('open') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.innerHTML = '<i class="fas fa-bars"></i>';
+        });
+    }
+})();
+</script>
 </body>
 </html>
 

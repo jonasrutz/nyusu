@@ -3,52 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Freunde | Team Manager</title>
+    <title>Freunde | nyusu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <% if (user && user.accentColor) { %>
+    <style>
+        :root {
+            --accent: <%= user.accentColor %>;
+            --accent-hover: <%= user.accentColor %>cc;
+            --accent-glow: <%= user.accentColor %>4d;
+        }
+        .user-avatar, .friend-avatar, .request-avatar {
+            background: linear-gradient(135deg, <%= user.accentColor %> 0%, <%= user.accentColor %>99 100%) !important;
+            box-shadow: 0 4px 20px <%= user.accentColor %>66 !important;
+        }
+    </style>
+    <% } %>
 </head>
 <body>
 <%- include('../layout/sidebar') %>
 <div class="main-content">
     <div class="page-header">
-        <h2>👥 Freunde</h2>
+        <h2><i class="fas fa-user-friends"></i> Freunde</h2>
     </div>
 
     <% if (errorMsg) { %>
-        <div class="alert alert-error"><%= errorMsg %></div>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= errorMsg %></div>
+    <% } %>
+    <% if (successMsg) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= successMsg %></div>
     <% } %>
 
+    <!-- Send Friend Request -->
     <div class="form-card">
-        <h4>Freund hinzufügen</h4>
-        <form action="/users/friends/add" method="POST" class="form-inline">
+        <h4><i class="fas fa-paper-plane"></i> Freundschaftsanfrage senden</h4>
+        <form action="/users/friends/request" method="POST" class="form-inline">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="text" name="username" placeholder="Benutzername eingeben…" required>
-            <button type="submit" class="btn btn-primary">Hinzufügen</button>
+            <button type="submit" class="btn btn-primary">Anfrage senden</button>
         </form>
     </div>
 
-    <% if (friends.length === 0) { %>
-    <div class="empty-state">
-        <span class="empty-icon">👥</span>
-        <p>Du hast noch keine Freunde hinzugefügt.</p>
-    </div>
-    <% } else { %>
-    <div class="friends-list">
-        <% friends.forEach(friend => { %>
-        <div class="friend-card">
-            <div class="member-avatar"><%= friend.username.charAt(0).toUpperCase() %></div>
-            <div class="friend-info">
-                <span class="friend-name"><%= friend.username %></span>
-                <span class="friend-email"><%= friend.email %></span>
+    <!-- Incoming Requests -->
+    <% if (incomingRequests.length > 0) { %>
+    <div class="section-card">
+        <h4><i class="fas fa-inbox"></i> Eingehende Anfragen <span class="badge-count"><%= incomingRequests.length %></span></h4>
+        <div class="request-list" id="incomingRequests">
+            <% incomingRequests.forEach(req => { %>
+            <div class="request-card friend-request">
+                <div class="request-avatar"><%= req.from.username.charAt(0).toUpperCase() %></div>
+                <div class="request-info">
+                    <span class="request-username"><%= req.from.username %></span>
+                    <span class="request-email"><%= req.from.email %></span>
+                    <span class="request-date">Gesendet: <%= new Date(req.createdAt).toLocaleString('de-CH') %></span>
+                </div>
+                <div class="request-actions">
+                    <form action="/users/friends/accept/<%= req._id %>" method="POST">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Annehmen</button>
+                    </form>
+                    <form action="/users/friends/decline/<%= req._id %>" method="POST">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Ablehnen</button>
+                    </form>
+                </div>
             </div>
-            <form action="/users/friends/remove" method="POST">
-                <input type="hidden" name="friendId" value="<%= friend._id %>">
-                <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Freund entfernen?')">Entfernen</button>
-            </form>
+            <% }) %>
         </div>
-        <% }) %>
     </div>
     <% } %>
+
+    <!-- Outgoing Requests -->
+    <% if (outgoingRequests.length > 0) { %>
+    <div class="section-card">
+        <h4><i class="fas fa-clock"></i> Gesendete Anfragen</h4>
+        <div class="request-list" id="outgoingRequests">
+            <% outgoingRequests.forEach(req => { %>
+            <div class="request-card friend-request outgoing">
+                <div class="request-avatar"><%= req.to.username.charAt(0).toUpperCase() %></div>
+                <div class="request-info">
+                    <span class="request-username"><%= req.to.username %></span>
+                    <span class="request-email"><%= req.to.email %></span>
+                    <span class="request-date">Gesendet: <%= new Date(req.createdAt).toLocaleString('de-CH') %></span>
+                </div>
+                <div class="request-actions">
+                    <form action="/users/friends/cancel/<%= req._id %>" method="POST" class="confirm-form"
+                          data-title="Anfrage zurückziehen?" data-message="Möchtest du die Anfrage an <%= req.to.username %> wirklich zurückziehen?">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="button" class="btn btn-secondary btn-sm confirm-trigger"><i class="fas fa-undo"></i> Zurückziehen</button>
+                    </form>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Friends List -->
+    <div class="section-card">
+        <h4><i class="fas fa-users"></i> Meine Freunde (<span id="friendCount"><%= friends.length %></span>)</h4>
+        <% if (friends.length === 0) { %>
+        <div class="empty-state small" id="emptyFriends">
+            <p>Du hast noch keine Freunde. Sende eine Anfrage!</p>
+        </div>
+        <% } else { %>
+        <div class="friends-list" id="friendsList">
+            <% friends.forEach(friend => { %>
+            <div class="friend-card">
+                <div class="member-avatar"><%= friend.username.charAt(0).toUpperCase() %></div>
+                <div class="friend-info">
+                    <span class="friend-name"><%= friend.username %></span>
+                    <span class="friend-email"><%= friend.email %></span>
+                </div>
+                <form action="/users/friends/remove" method="POST" class="confirm-form"
+                      data-title="Freund entfernen?" data-message="Möchtest du <%= friend.username %> wirklich von deiner Freundesliste entfernen?">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="friendId" value="<%= friend._id %>">
+                    <button type="button" class="btn btn-danger btn-sm confirm-trigger"><i class="fas fa-user-minus"></i> Entfernen</button>
+                </form>
+            </div>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
 </div>
+
+<!-- Custom Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box">
+        <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3 class="modal-title" id="modalTitle">Bestätigung</h3>
+        <p class="modal-message" id="modalMessage">Möchtest du fortfahren?</p>
+        <div class="modal-actions">
+            <button class="btn modal-btn-cancel" id="modalCancel">Abbrechen</button>
+            <button class="btn modal-btn-confirm" id="modalConfirm">Bestätigen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Modal System
+(function() {
+    const modal = document.getElementById('confirmModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalConfirm = document.getElementById('modalConfirm');
+    let currentForm = null;
+
+    function showModal(title, message, form) {
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        currentForm = form;
+        modal.classList.add('active');
+    }
+
+    function hideModal() {
+        modal.classList.remove('active');
+        currentForm = null;
+    }
+
+    modalCancel.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideModal();
+    });
+
+    modalConfirm.addEventListener('click', () => {
+        if (currentForm) currentForm.submit();
+        hideModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) hideModal();
+    });
+
+    document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('.confirm-trigger');
+        if (trigger) {
+            const form = trigger.closest('.confirm-form');
+            if (form) {
+                showModal(form.dataset.title || 'Bestätigung', form.dataset.message || 'Möchtest du fortfahren?', form);
+            }
+        }
+    });
+})();
+
+// Real-time polling for friend requests
+(function() {
+    let lastIncomingCount = <%= incomingRequests.length %>;
+    let lastOutgoingCount = <%= outgoingRequests.length %>;
+    let lastFriendsCount = <%= friends.length %>;
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatDate(dateStr) {
+        return new Date(dateStr).toLocaleString('de-CH');
+    }
+    
+    async function fetchData() {
+        try {
+            const response = await fetch('/users/friends/data');
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            
+            // Check for changes and reload if needed
+            if (data.incomingRequests.length !== lastIncomingCount ||
+                data.outgoingRequests.length !== lastOutgoingCount ||
+                data.friends.length !== lastFriendsCount) {
+                // Reload page to show updates
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error('Fehler beim Laden:', err);
+        }
+    }
+    
+    // Poll every 3 seconds
+    setInterval(fetchData, 3000);
+})();
+
+// Mobile Sidebar Toggle
+(function() {
+    const toggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (toggle && sidebar && overlay) {
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.innerHTML = sidebar.classList.contains('open') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.innerHTML = '<i class="fas fa-bars"></i>';
+        });
+    }
+})();
+</script>
 </body>
 </html>
 

@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fehler | Team Manager</title>
+    <title>Fehler | nyusu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -12,7 +16,7 @@
 <% } %>
 <div class="main-content">
     <div class="error-page">
-        <span class="error-icon">⚠️</span>
+        <span class="error-icon"><i class="fas fa-exclamation-triangle"></i></span>
         <h2>Oops!</h2>
         <p><%= message || 'Ein unbekannter Fehler ist aufgetreten.' %></p>
         <a href="/" class="btn btn-primary">Zurück zur Startseite</a>

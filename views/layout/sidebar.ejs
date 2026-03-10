@@ -1,21 +1,33 @@
-<nav class="sidebar">
-    <div class="sidebar-logo">
-        <span class="logo-icon">⚔️</span>
-        <span class="logo-text">Team Manager</span>
-    </div>
-    <% if (locals.sessionUser) { %>
-    <ul class="sidebar-nav">
-        <li><a href="/teams" class="nav-link"><span class="nav-icon">🏠</span> Dashboard</a></li>
-        <li><a href="/teams/new" class="nav-link"><span class="nav-icon">➕</span> Team erstellen</a></li>
-        <li><a href="/users/friends" class="nav-link"><span class="nav-icon">👥</span> Freunde</a></li>
-        <li><a href="/users/profile" class="nav-link"><span class="nav-icon">👤</span> Profil</a></li>
-    </ul>
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menü öffnen">
+    <i class="fas fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<nav class="sidebar" id="sidebar">
+    <% 
+    const sidebarUser = locals.sessionUser || locals.user;
+    const accentColor = sidebarUser && sidebarUser.accentColor;
+    %>
+    <% if (sidebarUser) { %>
     <div class="sidebar-user">
-        <div class="user-avatar"><%= locals.sessionUser.username.charAt(0).toUpperCase() %></div>
+        <div class="user-avatar" <% if (accentColor) { %>style="background: linear-gradient(135deg, <%= accentColor %> 0%, <%= accentColor %>99 100%); box-shadow: 0 4px 20px <%= accentColor %>66;"<% } %>><%= sidebarUser.username.charAt(0).toUpperCase() %></div>
         <div class="user-info">
-            <span class="user-name"><%= locals.sessionUser.username %></span>
-            <a href="/auth/logout" class="logout-link">Abmelden</a>
+            <span class="user-name"><%= sidebarUser.username %></span>
+            <form action="/auth/logout" method="POST" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                <button type="submit" class="logout-link">Abmelden</button>
+            </form>
         </div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="/teams" class="nav-link"><span class="nav-icon"><i class="fas fa-home"></i></span> Home</a></li>
+        <li><a href="/teams/new" class="nav-link"><span class="nav-icon"><i class="fas fa-plus"></i></span> Team erstellen</a></li>
+        <li><a href="/users/friends" class="nav-link"><span class="nav-icon"><i class="fas fa-envelope"></i></span> Anfragen</a></li>
+        <li><a href="/users/profile" class="nav-link"><span class="nav-icon"><i class="fas fa-cog"></i></span> Einstellungen</a></li>
+    </ul>
+    <div class="sidebar-logo">
+        <span class="logo-text">NYU<span>SU</span></span>
     </div>
     <% } %>
 </nav>
